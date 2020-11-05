@@ -1,6 +1,19 @@
 # Python中的模块和包
-# Python项目结构
-# Python包搜索/导入顺序
+## Python基本概念
+1. module
+   
+   模块， 一个 py 文件或以其他文件形式存在的可被导入的就是一个模块
+2. package
+   
+   包，包含有 __init__ 文件的文件夹
+3. relative path
+   
+   相对路径，相对于某个目录的路径
+4. absolute path
+   
+   绝对路径，全路径
+
+## Python包搜索/导入顺序
 1. 优先在内建的模块中搜索（`sys.builtin_module_name`）。
     ```python
     import sys
@@ -61,13 +74,86 @@
    pth文件：Python在遍历已知的库文件目录过程中，如果见到一个`.pth`文件，就会将文件中所记录的路径加入到 sys.path 设置中，于是`.pth`文件说指明的库也就可以被Python运行环境找到了。将`xxx.pth`文件放在特定位置，则可以让Python在加载模块时，读取`xxx.pth`中指定的路径，[example](./test_pth.py)。
    https://blog.csdn.net/kypfos/article/details/84559665
    
-   virtualenv: https://www.kawabangga.com/posts/3543
+### virtualenv原理
+基于搜索顺序，可以大致了解到virtualenv的原理：
+启动过程：
+```sh
+virtualenv ENV
+source bin/activate
+```
+查看bin/activate可以发现如下内容：
+```sh
+# unset irrelevant variables
+deactivate nondestructive
 
-https://sanyuesha.com/2016/05/28/python-module-path-find/
-https://michael728.github.io/2018/12/15/python-package-import-order/
-# import与C/C++的include的区别
+VIRTUAL_ENV='/home/zhiwei/projects/design_pattern_notes/py/venvp/venvs'
+if ([ "$OSTYPE" = "cygwin" ] || [ "$OSTYPE" = "msys" ]) && $(command -v cygpath &> /dev/null) ; then
+    VIRTUAL_ENV=$(cygpath -u "$VIRTUAL_ENV")
+fi
+export VIRTUAL_ENV
+
+_OLD_VIRTUAL_PATH="$PATH"
+PATH="$VIRTUAL_ENV/bin:$PATH"
+export PATH
+```
+可以看到，执行activate时，实际上是在当前Path最开始插入了virtual env的路径，这样就会被python优先查找到。
+
+通过python解释器检查环境变量：
+```python
+import sys
+print(sys.prefix)
+print(sys.path)
+/home/zhiwei/projects/design_pattern_notes/py/venvp/venvs
+['/home/zhiwei/projects/design_pattern_notes/py/venvp', '/usr/lib/python36.zip', '/usr/lib/python3.6', '/usr/lib/python3.6/lib-dynload', '/home/zhiwei/projects/design_pattern_notes/py/venvp/venvs/lib/python3.6/site-packages']
+```
+
+
+Python安装包时，会优先安装到sys.prefix/lib/python$ver/site-packages.
+```sh
+python3 -m site
+
+sys.path = [
+    '/home/zhiwei/projects/design_pattern_notes/py/venvp',
+    '/usr/lib/python36.zip',
+    '/usr/lib/python3.6',
+    '/usr/lib/python3.6/lib-dynload',
+    '/home/zhiwei/projects/design_pattern_notes/py/venvp/venvs/lib/python3.6/site-packages',
+]
+USER_BASE: '/home/zhiwei/.local' (exists)
+USER_SITE: '/home/zhiwei/.local/lib/python3.6/site-packages' (exists)
+ENABLE_USER_SITE: False
+```
+virtual env并不会把所有的python包都拷贝到当前目录。
+```python
+import os
+print('os path: {}'.format(os.__file__))
+import numpy
+print('numpy path: {}'.format(numpy.__file__))
+
+os path: /usr/lib/python3.6/os.py
+numpy path: /home/zhiwei/projects/design_pattern_notes/py/venvp/venvs/lib/python3.6/site-packages/numpy/__init__.py
+```
+
+## import与C/C++的include的区别
 1. import只导入一次，第一次导入时会编译生成pyc；
 2. 下次再被导入时，直接复用pyc即可；
 3. import的本质: 放入`sys.modules`中， [example](./imports.py)。
-https://www.cnblogs.com/yuandonghua/p/11771055.html
-http://net-informations.com/python/iq/pyc.htm#:~:text=pyc%20contain%20the%20compiled%20bytecode,interpreter%20compiles%20the%20source%20to.&text=But%20interpreters%20take%20human%20readable,this%20with%20an%20intermediate%20stage%20.
+
+# Python项目结构
+三种方法：
+1. 相对路径: 见foo
+   > PEP 328
+   
+   >Relative imports use a module’s `__name__`attribute to determine that module’s position in the package hierarchy. If the module’s name does not contain any package information (e.g. it is set to`__main__`) then relative imports are resolved as if the module were a top level module, regardless of where the module is actually located on the file system.
+   相对导入通过使用模块的 `__name__`属性来确定模块在包层次结构中的位置。如果该模块的名称不包含任何包信息（例如，它被设置为`__main__`），那么相对引用会认为这个模块就是顶级模块，而不管模块在文件系统上的实际位置。
+   换句话说，解决模块的算法是基于`__name__`和`__package__`变量的值。大部分时候，这些变量不包含任何包信息 ---- 比如：当 `__name__ = __main__` 和 `__package__ = None` 时，python解释器不知道模块所属的包。在这种情况下，相对引用会认为这个模块就是顶级模块，而不管模块在文件系统上的实际位置。
+2. 绝对路径:直接看Triton代码
+3. 直接强行修改sys.path
+
+# 参考链接
+* https://www.kawabangga.com/posts/3543
+* https://sanyuesha.com/2016/05/28/python-module-path-find/
+* https://michael728.github.io/2018/12/15/python-package-import-order/
+* https://www.cnblogs.com/yuandonghua/p/11771055.html
+* http://net-informations.com/python/iq/pyc.htm#:~:text=pyc%20contain%20the%20compiled%20bytecode,interpreter%20compiles%20the%20source%20to.&text=But%20interpreters%20take%20human%20readable,this%20with%20an%20intermediate%20stage%20.
+* 关于attempted relative import beyond top-level package的解释：https://blog.csdn.net/qiusuoxiaozi/article/details/79061885
