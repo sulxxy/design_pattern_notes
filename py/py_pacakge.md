@@ -62,6 +62,7 @@
    https://blog.csdn.net/kypfos/article/details/84559665
    
    virtualenv: https://www.kawabangga.com/posts/3543
+   https://blog.csdn.net/Jacketinsysu/article/details/54944842
 
 https://sanyuesha.com/2016/05/28/python-module-path-find/
 https://michael728.github.io/2018/12/15/python-package-import-order/
