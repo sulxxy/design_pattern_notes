@@ -147,6 +147,10 @@ numpy path: /home/zhiwei/projects/design_pattern_notes/py/venvp/venvs/lib/python
    >Relative imports use a module’s `__name__`attribute to determine that module’s position in the package hierarchy. If the module’s name does not contain any package information (e.g. it is set to`__main__`) then relative imports are resolved as if the module were a top level module, regardless of where the module is actually located on the file system.
    相对导入通过使用模块的 `__name__`属性来确定模块在包层次结构中的位置。如果该模块的名称不包含任何包信息（例如，它被设置为`__main__`），那么相对引用会认为这个模块就是顶级模块，而不管模块在文件系统上的实际位置。
    换句话说，解决模块的算法是基于`__name__`和`__package__`变量的值。大部分时候，这些变量不包含任何包信息 ---- 比如：当 `__name__ = __main__` 和 `__package__ = None` 时，python解释器不知道模块所属的包。在这种情况下，相对引用会认为这个模块就是顶级模块，而不管模块在文件系统上的实际位置。
+   
+   
+   >非常不推荐这样做，特别是我们只是想临时debug一下子模块中的包的时候，修改好后还需要改回去，十分繁琐，还有可能带来不一致的问题，这是软件开发的灾难。
+   
 
    ```sh
    cd $PROJECT
@@ -182,6 +186,9 @@ numpy path: /home/zhiwei/projects/design_pattern_notes/py/venvp/venvs/lib/python
    ```
 2. 绝对路径:直接看Triton代码
 3. 直接强行修改sys.path
+   
+   动态改变sys.path会使静态分析工具失效，例如pycharm 等IDE的代码提示。这在大型项目中会极大降低代码的可阅读性、增加开发难度，不推荐。
+
 
 # 参考链接
 * https://www.kawabangga.com/posts/3543
@@ -190,3 +197,4 @@ numpy path: /home/zhiwei/projects/design_pattern_notes/py/venvp/venvs/lib/python
 * https://www.cnblogs.com/yuandonghua/p/11771055.html
 * http://net-informations.com/python/iq/pyc.htm#:~:text=pyc%20contain%20the%20compiled%20bytecode,interpreter%20compiles%20the%20source%20to.&text=But%20interpreters%20take%20human%20readable,this%20with%20an%20intermediate%20stage%20.
 * 关于attempted relative import beyond top-level package的解释：https://blog.csdn.net/qiusuoxiaozi/article/details/79061885
+* https://zhuanlan.zhihu.com/p/80516137
